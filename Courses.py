@@ -49,6 +49,7 @@ class scheduler():
             self.grid.append([])
             for c in range(self.cols):
                 self.grid[r].append('')
+        self.courseSections = []
 
     def putCouseSectionOnGridSuccessful(self, aSection):
         for aSchedule in aSection.schedules:
@@ -59,42 +60,35 @@ class scheduler():
                 if self.grid[r][c] != '':
                     return False;
                 self.grid[r][c] = aSection.courseId + '-' + aSection.sectionId
+            self.courseSections.append(aSection.courseId + '-' + aSection.sectionId)
         return True
 
     def freeTimeBlock(self):
         temp = []
         for c in range(self.cols):
             dayFree = []
-            r=0;
+            r = 0;
             rb = 0
-            while r<self.rows:
-                while r<self.rows and self.grid[r][c] == '':
+            while r < self.rows:
+                while r < self.rows and self.grid[r][c] == '':
                     r += 1;
-                dayFree.append(r-rb);
-                while r<self.rows and self.grid[r][c] != '':
+                dayFree.append(r - rb);
+                while r < self.rows and self.grid[r][c] != '':
                     r += 1
                 rb = r
             temp.append(dayFree)
         results = []
         i = 0
-        while i< self.cols:
+        while i < self.cols:
             results.extend(temp[i])
-            if i!= self.cols-1:
-                results[-1] += temp[i+1][0]
-                temp[i+1].pop(0)
+            if i != self.cols - 1:
+                results[-1] += temp[i + 1][0]  # add the next day's beginning free time to today's last
+                temp[i + 1].pop(0)
             i += 1
-
-
         results.sort(reverse=True)
-        self.freeTimeBlock0 = results[0]
-        self.freeTimeBlock1 = results[1]
-        self.freeTimeBlock2 = results[2]
-        self.freeTimeBlock3 = results[3]
-        self.freeTimeBlock4 = results[4]
-        self.freeTimeBlock5 = results[5]
+        return results
 
-
-    def dailyHrs(self):
+    def dailyCourseHrs(self):
         result = ''
         for c in range(self.cols):
             rb = 0
@@ -108,12 +102,13 @@ class scheduler():
                 bmin = (rb * 5) % 60
                 ehr = (re * 5) // 60
                 emin = (re * 5) % 60
-                result += scheduler.numToWeekday[c] + ' ' + str(bhr) + ':' + str(bmin) + '-' + str(ehr) + ':' + str(
+                result += scheduler.numToWeekday[c][:2] + ' ' + str(bhr) + ':' + str(bmin) + '-' + str(ehr) + ':' + str(
                     emin) + ','
+        result += str(self.freeTimeBlock())
         return result
 
     def __str__(self):
-        return self.dailyHrs()
+        return self.dailyCourseHrs()
 
     def getGrid(self):
         rB = 24 * 12 - 1
@@ -132,7 +127,7 @@ class scheduler():
                 if re > rE:
                     rE = re;
         displayGrid = []
-        for r in range(rE -rB + 1):
+        for r in range(rE - rB + 1):
             displayGrid.append([])
             realR = r + rB
             realM = realR * 5 % 60
@@ -149,18 +144,18 @@ class scheduler():
                     displayGrid[r].append(self.grid[realR][c - 1])
         displayGridFinal = []
         displayGridFinal.append(displayGrid[0])
-        for r in range(1,len(displayGrid)):
+        for r in range(1, len(displayGrid)):
             copy = False
-            for c in range(1,6):
-                if r == len(displayGrid)-1:
+            for c in range(1, 6):
+                if r == len(displayGrid) - 1:
                     copy = True
                     break
-                if displayGrid[r][c]!= displayGrid[r-1][c]:
+                if displayGrid[r][c] != displayGrid[r - 1][c]:
                     copy = True
                     break
-                if displayGrid[r][c]!='' and displayGrid[r+1][c]=='':
+                if displayGrid[r][c] != '' and displayGrid[r + 1][c] == '':
                     copy = True
                     break
             if copy:
-               displayGridFinal.append(displayGrid[r])
+                displayGridFinal.append(displayGrid[r])
         return displayGrid

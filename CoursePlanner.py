@@ -1,7 +1,7 @@
 import Courses
 from bs4 import BeautifulSoup
 from itertools import combinations
-from operator import itemgetter, attrgetter
+from operator import methodcaller
 
 
 # link = 'http://sis.rutgers.edu/soc/#courses?subject=198&semester=92019&campus=NB&level=U'
@@ -69,7 +69,7 @@ def generateCourseSectionsCombo(myCourses, coursesOffered):
             # increment the innermost variable and check if spill overs
             if myWorkingArray[r][2] >= myWorkingArray[r][1]:
                 if r == 0:
-                    #the outer most loop counter reaches max, we are done
+                    # the outer most loop counter reaches max, we are done
                     done = True
                 myWorkingArray[r][2] = 0;  # reintialize loop variable
                 # Change the upper variable by one
@@ -82,14 +82,15 @@ def generateCourseSectionsCombo(myCourses, coursesOffered):
 
     return result
 
+
 def generateCourseSectionsCombo1(myCourses, coursesOffered):
     results = []
     sections = []
     for myCourse in myCourses:
         sections.extend(coursesOffered[myCourse].sections)
-    allCombos = combinations(sections,len(myCourses))
+    allCombos = combinations(sections, len(myCourses))
     for combo in allCombos:
-        #my sections knows which couse they belong to
+        # my sections knows which couse they belong to
         if len(set([section.courseId for section in combo])) == len(myCourses):
             results.append(combo)
     return results
@@ -98,11 +99,11 @@ def generateCourseSectionsCombo1(myCourses, coursesOffered):
 # main
 
 courses = {}
-for fname in ['cs1.txt','math1.txt','ee1.txt']:
+for fname in ['cs1.txt', 'math1.txt', 'ee1.txt']:
     addCoursesFromFile(fname, courses)
 
-#combos = generateCourseSectionsCombo(['01:198:112', '01:198:205','01:640:250','14:332:221'], courses)
-combos = generateCourseSectionsCombo1(['01:198:112', '01:198:205','01:640:250','14:332:221'], courses)
+# combos = generateCourseSectionsCombo(['01:198:112', '01:198:205','01:640:250','14:332:221'], courses)
+combos = generateCourseSectionsCombo1(['01:198:112', '01:198:205', '01:640:250', '14:332:221'], courses)
 
 goodCal = []
 for combo in combos:
@@ -113,8 +114,6 @@ for combo in combos:
             ok = False
             break
     if ok:
-        s.dailyHrs()
-        s.freeTimeBlock()
         goodCal.append(s)
-sorted(goodCal,key=attrgetter('freeTimeBlock0','freeTimeBlock1','freeTimeBlock2','freeTimeBlock3','freeTimeBlock4','freeTimeBlock5'), reverse=True)
+goodCal.sort(key=methodcaller('freeTimeBlock'), reverse=True)
 goodCal
